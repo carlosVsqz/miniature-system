@@ -1,0 +1,79 @@
+#version: '3.7'
+#
+#services:
+#  db:
+#    build: .
+#    image: mcmoe/mssqldocker
+#    environment:
+#      ACCEPT_EULA: Y
+#      SA_PASSWORD: '@#ert*>O'
+##      MSSQL_DB: projectc_db
+##      MSSQL_USER: magg
+##      MSSQL_PASSWORD: passwordA1$
+#    ports:
+#      - "1433:1433"
+#    container_name: sql_server_db
+
+
+version: '3.7'
+
+# services
+services:
+
+  #server
+  app-server:
+    build: .
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DB_URL: jdbc:sqlserver://127.0.0.1;database=projectc_db
+      DB_USERNAME: SA
+      DB_PASSWORD: '@#ert*>O'
+    networks:
+      - backend
+      - frontend
+
+  # client
+  app-client:
+    build:
+      context: client
+      dockerfile: Dockerfile
+      args:
+        BASE_URL: http://127.0.0.1:8080/api
+    ports:
+      - "9090:80"
+    restart: always
+    depends_on:
+      - app-server
+    networks:
+      - frontend
+
+  # db
+  db:
+    image: mcmoe/mssqldocker
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: '@#ert*>O'
+    #        MSSQL_DB: projectc_db
+    #        MSSQL_USER: magg
+    #        MSSQL_PASSWORD: 'passwordA1$'
+    ports:
+      - "1433:1433"
+    restart: always
+    #    container_name: sql_server_db
+    volumes:
+      - db-data:/var/lib/mssql
+    networks:
+      - backend
+
+# volumes
+volumes:
+  db-data:
+
+# networks
+networks:
+  backend:
+  frontend:
